@@ -1,15 +1,28 @@
 #!/usr/bin/env python3
-import math
-import os
-import sys
-from typing import MutableMapping, Self
 import argparse
 import dataclasses
+import json
+import math
+import os
+import subprocess
+from typing import MutableMapping, Self
 from typing import Any, Iterable, Mapping, Type
 from PySide6 import QtWidgets, QtGui, QtCore
 from PIL import Image, ImageQt
-import subprocess
-import json
+
+WHITE = QtGui.QColor.fromRgb(255, 255, 255)
+RED = QtGui.QColor.fromRgb(255, 0, 0)
+ORANGE = QtGui.QColor.fromRgb(255, 150, 0)
+
+_DESCRIPTION = """Scale and cut images to use as wallpapers in sway.
+Scale the image with the scroll wheel and move it around with drag and drop.
+Then confirm your selection with the space bar.
+Your monitor setup will be overlaid.
+If the image is zoomed in more than the original resolution the monitor setup
+will be orange.
+If the image doesn't cover all screens fully the monitor setup will be red.
+The program will print the command to set the wallpaper for swaybg and swaylock.
+"""
 
 
 def get_sway_outputs() -> list[Mapping[str, Any]]:
@@ -39,7 +52,8 @@ class Monitor:
         x = int(self.x + x)
         y = int(self.y + y)
         crop = (x, y, x + self.width, y + self.height)
-        img.crop(crop)
+        return img.crop(crop)
+
 
 @dataclasses.dataclass
 class Desktop:
@@ -94,7 +108,19 @@ class Wallpaper(QtWidgets.QLabel):
             int(self.wpx * self.display_scale),
             int(self.wpy * self.display_scale),
         )
-        pen = QtGui.QPen(QtGui.QColor.fromRgb(255, 255, 255))
+        if (
+            self.wpx > 0
+            or self.wpy > 0
+            or self.wpx + self.original_width * self.wp_scale
+            < self.desktop.width
+            or self.wpy + self.original_height * self.wp_scale
+            < self.desktop.height
+        ):
+            pen = QtGui.QPen(RED)
+        elif self.wp_scale > 1:
+            pen = QtGui.QPen(ORANGE)
+        else:
+            pen = QtGui.QPen(WHITE)
         pen.setWidth(2)
         painter.setPen(pen)
         painter.drawPixmap(point, self.pixmap())
@@ -170,20 +196,37 @@ def main(args: argparse.Namespace):
     wp = Wallpaper(ImageQt.ImageQt(img), desktop, results, args.scale)
     wp.show()
     app.exec()
+    if "size" not in results:
+        exit(1)
     scaled = img.resize(results["size"])
+    swaybg_cmd = ["swaybg"]
+    swaylock_cmd = ["swaylock"]
     for monitor in desktop.monitors:
         cut = monitor.cut(scaled, results["xoff"], results["yoff"])
-        cut.save(os.path.join(args.output_dir, f"{monitor.name}.png"))
+        filepath = os.path.join(args.output_dir, f"{monitor.name}.png")
+        cut.save(filepath)
+        swaybg_cmd.extend([f"-o {monitor.name} -i {filepath}"])
+        swaylock_cmd.extend([f"-i {monitor.name}:{filepath}"])
+    print(" ".join(swaybg_cmd))
+    print(" ".join(swaylock_cmd))
 
 
 if __name__ == "__main__":
-    args = argparse.ArgumentParser("Sway Wallpaper Splitter")
-    args.add_argument("filepath", type=str)
-    args.add_argument("output_dir", type=str)
+    args = argparse.ArgumentParser(
+        "Sway Wallpaper Splitter",
+        usage="./sway-wallpaper-splitter.py my-wp.jpg .",
+        description=_DESCRIPTION,
+    )
+    args.add_argument(
+        "filepath", type=str, help="The filepath to the wallpaper"
+    )
+    args.add_argument(
+        "output_dir", type=str, help="The directory where to store the images"
+    )
     args.add_argument(
         "--scale",
         type=float,
         default=0.2,
-        help="The multiplier of the desktop relative to the real size.",
+        help="The multiplier of the desktop relative to the real size (default=0.2).",
     )
     main(args.parse_args())

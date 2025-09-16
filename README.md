@@ -1,0 +1,17 @@
+# Sway Wallpaper Splitter
+
+A simple tool to scale and cut wallpapers for swaybg, especially useful for
+multi monitor setups.
+
+If the image is zoomed in more than the original resolution the monitor setup
+will be orange.\
+If the image doesn't cover all screens fully the monitor setup will be red.
+
+Usage:
+
+1.  Launch the program with `./sway-wallpaper-splitter.py my-wp.jpg target_dir`
+    *   `my-wp.jpg` is the path to to a wallpaper.
+    *   `target_dir` is the directory path where the cut files are stored.
+2.  Scale the image with the scroll wheel and move it around with drag and drop.
+3.  Confirm your selection with the space bar.
+4.  The program will print the command to set the wallpaper for swaybg and swaylock.
