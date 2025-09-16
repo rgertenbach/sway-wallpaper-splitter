@@ -3,6 +3,8 @@
 A simple tool to scale and cut wallpapers for swaybg, especially useful for
 multi monitor setups.
 
+![Wallpaper splitter in use](https://i.imgur.com/ya4NxvI.png)
+
 If the image is zoomed in more than the original resolution the monitor setup
 will be orange.\
 If the image doesn't cover all screens fully the monitor setup will be red.
