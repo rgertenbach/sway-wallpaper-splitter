@@ -15,3 +15,9 @@ Usage:
 2.  Scale the image with the scroll wheel and move it around with drag and drop.
 3.  Confirm your selection with the space bar.
 4.  The program will print the command to set the wallpaper for swaybg and swaylock.
+
+Dependencies:
+
+*   Python3
+*   [PySide6](https://pypi.org/project/PySide6)
+*   [pillow](https://pypi.org/project/pillow)
