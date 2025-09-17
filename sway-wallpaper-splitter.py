@@ -186,8 +186,6 @@ class Wallpaper(QtWidgets.QLabel):
             self.wpy = 0
             self.update()
 
-
-
     def mouseReleaseEvent(self, event: QtGui.QMouseEvent, /) -> None:
         if event.button == QtCore.Qt.MouseButton.LeftButton:
             self.starting_loc = None
@@ -257,7 +255,7 @@ if __name__ == "__main__":
     args = argparse.ArgumentParser(
         "Sway Wallpaper Splitter",
         description=_DESCRIPTION,
-        formatter_class=argparse.RawDescriptionHelpFormatter
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     args.add_argument(
         "filepath", type=str, help="The filepath to the wallpaper"
