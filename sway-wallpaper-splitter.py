@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import dataclasses
+import enum
 import json
 import math
 import os
@@ -27,6 +28,13 @@ The program will print the command to set the wallpaper for swaybg and swaylock.
 
 def get_sway_outputs() -> list[Mapping[str, Any]]:
     return json.loads(subprocess.getoutput("swaymsg -t get_outputs -r"))
+
+
+class ScaleMode(enum.Enum):
+    ORIGINAL = 1
+    WIDTH = 2
+    HEIGHT = 3
+    FREE = 4
 
 
 @dataclasses.dataclass
@@ -97,9 +105,11 @@ class Wallpaper(QtWidgets.QLabel):
         self.aspect_ratio = img.width() / img.height()
         self.wp_scale = 1
         self.starting_loc: tuple[float, float] | None = None
+        self.last_loc: tuple[float, float] | None = None
         self.update_pixmap()
         self.wpx = 0
         self.wpy = 0
+        self.wp_mode = ScaleMode.ORIGINAL
 
     def paintEvent(self, event: QtGui.QPaintEvent) -> None:
         del event
@@ -141,6 +151,7 @@ class Wallpaper(QtWidgets.QLabel):
         if direction < 0:
             self.wp_scale -= 0.05
         self.update_pixmap()
+        self.wp_mode = ScaleMode.FREE
         return None
 
     def mousePressEvent(self, event: QtGui.QMouseEvent, /) -> None:
@@ -149,22 +160,45 @@ class Wallpaper(QtWidgets.QLabel):
                 event.position().x() / self.display_scale,
                 event.position().y() / self.display_scale,
             )
+            self.last_loc = self.starting_loc
+        elif event.button() == QtCore.Qt.MouseButton.RightButton:
+            print(self.wp_mode)
+            if self.wp_mode == ScaleMode.ORIGINAL:
+                self.wp_mode = ScaleMode.WIDTH
+                self.wp_scale = self.desktop.width / self.original_width
+            elif self.wp_mode == ScaleMode.WIDTH:
+                self.wp_mode = ScaleMode.HEIGHT
+                self.wp_scale = self.desktop.height / self.original_height
+            else:
+                self.wp_mode = ScaleMode.ORIGINAL
+                self.wp_scale = 1
+            self.update_pixmap()
 
     def mouseReleaseEvent(self, event: QtGui.QMouseEvent, /) -> None:
         if event.button == QtCore.Qt.MouseButton.LeftButton:
             self.starting_loc = None
+            self.last_loc = None
 
     def mouseMoveEvent(self, event: QtGui.QMouseEvent, /) -> None:
         if event.buttons() != QtCore.Qt.MouseButton.LeftButton:
             return
-        if self.starting_loc is None:
+        if self.starting_loc is None or self.last_loc is None:
             raise RuntimeError("Did not determine mouse pointer position")
+        lx, ly = self.last_loc
         ox, oy = self.starting_loc
         cx = event.position().x() / self.display_scale
         cy = event.position().y() / self.display_scale
-        self.starting_loc = (cx, cy)
-        self.wpx += cx - ox
-        self.wpy += cy - oy
+        if event.modifiers() & QtCore.Qt.KeyboardModifier.ShiftModifier:
+            dx = abs(cx - ox)
+            dy = abs(cy - oy)
+            if dx > dy:
+                self.wpx += cx - lx
+            else:
+                self.wpy += cy - ly
+        else:
+            self.wpx += cx - lx
+            self.wpy += cy - ly
+        self.last_loc = (cx, cy)
         self.update()
 
     def update_pixmap(self) -> None:
