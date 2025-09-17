@@ -15,6 +15,9 @@ Usage:
     *   `my-wp.jpg` is the path to to a wallpaper.
     *   `target_dir` is the directory path where the cut files are stored.
 2.  Scale the image with the scroll wheel and move it around with drag and drop.
+    *   Right click to reset the size to the original and cycle through scaling
+        the image to fit the width and the height of the desktop setup.
+    *   You can drag with Shift to move along a single axis.
 3.  Confirm your selection with the space bar.
 4.  The program will print the command to set the wallpaper for swaybg and swaylock.
 

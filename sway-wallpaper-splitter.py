@@ -16,13 +16,20 @@ RED = QtGui.QColor.fromRgb(255, 0, 0)
 ORANGE = QtGui.QColor.fromRgb(255, 150, 0)
 
 _DESCRIPTION = """Scale and cut images to use as wallpapers in sway.
+
+You will see a visual representation of your Sway outputs overlaid over the
+wallpaper.
+
 Scale the image with the scroll wheel and move it around with drag and drop.
 Then confirm your selection with the space bar.
-Your monitor setup will be overlaid.
+You can right click to reset the size to the original and cycle through
+scaling the image to fit the width and the height of the desktop setup.
+You can drag with Shift to move along a single axis.
+
 If the image is zoomed in more than the original resolution the monitor setup
-will be orange.
-If the image doesn't cover all screens fully the monitor setup will be red.
-The program will print the command to set the wallpaper for swaybg and swaylock.
+will be colored orange.
+If the image doesn't cover all screens fully the monitor setup will be colored
+red.
 """
 
 
@@ -162,7 +169,6 @@ class Wallpaper(QtWidgets.QLabel):
             )
             self.last_loc = self.starting_loc
         elif event.button() == QtCore.Qt.MouseButton.RightButton:
-            print(self.wp_mode)
             if self.wp_mode == ScaleMode.ORIGINAL:
                 self.wp_mode = ScaleMode.WIDTH
                 self.wp_scale = self.desktop.width / self.original_width
@@ -173,6 +179,12 @@ class Wallpaper(QtWidgets.QLabel):
                 self.wp_mode = ScaleMode.ORIGINAL
                 self.wp_scale = 1
             self.update_pixmap()
+        elif event.button() == QtCore.Qt.MouseButton.MiddleButton:
+            self.wpx = 0
+            self.wpy = 0
+            self.update()
+
+
 
     def mouseReleaseEvent(self, event: QtGui.QMouseEvent, /) -> None:
         if event.button == QtCore.Qt.MouseButton.LeftButton:
@@ -233,23 +245,17 @@ def main(args: argparse.Namespace):
     if "size" not in results:
         exit(1)
     scaled = img.resize(results["size"])
-    swaybg_cmd = ["swaybg"]
-    swaylock_cmd = ["swaylock"]
     for monitor in desktop.monitors:
         cut = monitor.cut(scaled, results["xoff"], results["yoff"])
         filepath = os.path.join(args.output_dir, f"{monitor.name}.png")
         cut.save(filepath)
-        swaybg_cmd.extend([f"-o {monitor.name} -i {filepath}"])
-        swaylock_cmd.extend([f"-i {monitor.name}:{filepath}"])
-    print(" ".join(swaybg_cmd))
-    print(" ".join(swaylock_cmd))
 
 
 if __name__ == "__main__":
     args = argparse.ArgumentParser(
         "Sway Wallpaper Splitter",
-        usage="./sway-wallpaper-splitter.py my-wp.jpg .",
         description=_DESCRIPTION,
+        formatter_class=argparse.RawDescriptionHelpFormatter
     )
     args.add_argument(
         "filepath", type=str, help="The filepath to the wallpaper"
