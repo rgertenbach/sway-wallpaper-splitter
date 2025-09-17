@@ -18,6 +18,8 @@ Usage:
     *   Right click to reset the size to the original and cycle through scaling
         the image to fit the width and the height of the desktop setup.
     *   You can drag with Shift to move along a single axis.
+    *   Middle click resets the location of the wallpaper to start at the top
+        left corner of the desktop.
 3.  Confirm your selection with the space bar.
 4.  The program will print the command to set the wallpaper for swaybg and swaylock.
 
