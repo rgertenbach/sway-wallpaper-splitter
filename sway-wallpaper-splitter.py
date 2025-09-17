@@ -25,6 +25,8 @@ Then confirm your selection with the space bar.
 You can right click to reset the size to the original and cycle through
 scaling the image to fit the width and the height of the desktop setup.
 You can drag with Shift to move along a single axis.
+Middle click resets the location of the wallpaper to start at the top left
+corner of the desktop.
 
 If the image is zoomed in more than the original resolution the monitor setup
 will be colored orange.
