@@ -21,7 +21,8 @@ Usage:
     *   Middle click resets the location of the wallpaper to start at the top
         left corner of the desktop.
 3.  Confirm your selection with the space bar.
-4.  The program will print the command to set the wallpaper for swaybg and swaylock.
+4.  The program will outpuot the split pictures into `target_dir` as pngs.
+    The names will be the output they are for (e.g. DP-1.png).
 
 Dependencies:
 
